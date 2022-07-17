@@ -4,25 +4,17 @@ FROM ubuntu
 # setting the working directory
 WORKDIR /opt/aem
 
-# Copy the license file
-COPY  config/crx/license.properties .
-
-# Copy Quickstart jar file
-COPY  config/crx/cq-quickstart.jar cq-quickstart.jar
-
-# Install Java
-# Install OpenJDK-8
 RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:openjdk-r/ppa && \
+    apt-get update && \
     apt-get install -y openjdk-8-jdk && \
-    apt-get install -y ant && \
-    apt-get clean;
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/oracle-jdk8-installer
 
-# Fix certificate issues
-RUN apt-get update && \
-    apt-get install ca-certificates-java && \
-    apt-get clean && \
-    update-ca-certificates -f;
+ADD config/crx/license.properties ./
 
-# Setup JAVA_HOME -- useful for docker commandline
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
-RUN export JAVA_HOME
+ADD config/crx/cq-quickstart.jar cq-quickstart.jar
+
+RUN java -jar cq-quickstart.jar -unpack
